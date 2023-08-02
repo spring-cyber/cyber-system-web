@@ -1,0 +1,48 @@
+.cyber-action-list {
+  max-height: 230px;
+  padding: 12px 20px;
+  border-radius: @border-radius-base;
+  border: 1px solid @border-color-base;
+  overflow-y: auto;
+  .cyber-action-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 40px;
+    overflow: hidden;
+    border-top: 1px solid @border-color-base;
+    &:last-child {
+      cursor: pointer;
+      border-bottom: 1px solid @border-color-base;
+    }
+    .cyber-action-icon {
+      margin-right: 12px;
+    }
+    .cyber-action-edit,
+    .cyber-action-delete {
+      white-space: nowrap;
+      color: #BDBDBD;
+      cursor: pointer;
+      display: none;
+      &:hover {
+        color: @primary-color;
+      }
+    }
+    .cyber-action-edit {
+      margin: 0 12px;
+    }
+    .cyber-action-text {
+      .ellipsis();
+    }
+    &:hover {
+      .cyber-action-text,
+      .cyber-action-icon {
+        color: @primary-color;
+      }
+      .cyber-action-edit,
+      .cyber-action-delete {
+        display: initial;
+      }
+    }
+  }
+}
