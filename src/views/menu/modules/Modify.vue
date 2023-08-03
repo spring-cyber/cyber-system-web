@@ -47,13 +47,13 @@
           <a-input v-model:value="formState.query" placeholder="请输入路由参数..."></a-input>
         </a-form-item>
         <a-form-item label="显示状态" name="visible">
-          <a-radio-group v-model:value="formState.visible" :options="$dictStore.menuVisualStatus"></a-radio-group>
+          <a-radio-group v-model:value="formState.visible" :options="MENU_VISIBLE"></a-radio-group>
         </a-form-item>
         <a-form-item label="是否外链" name="isFrame">
-          <a-radio-group v-model:value="formState.isFrame" :options="$dictStore.isFrame"></a-radio-group>
+          <a-radio-group v-model:value="formState.isFrame" :options="IS_FRAME"></a-radio-group>
         </a-form-item>
         <a-form-item label="菜单状态" name="status">
-          <a-radio-group v-model:value="formState.status" :options="$dictStore.status"></a-radio-group>
+          <a-radio-group v-model:value="formState.status" :options="STATUS"></a-radio-group>
         </a-form-item>
         <a-form-item label="显示顺序" name="orderNum">
           <a-input-number
@@ -66,7 +66,7 @@
         </a-form-item>
       </div>
       <a-form-item label="API列表" name="apiPerms">
-        <ActionList v-model:value="formState.apiPerms"></ActionList>
+        <ActionList :productCode="modalState.productCode" v-model:value="formState.apiPerms"></ActionList>
       </a-form-item>
     </a-form>
   </c-modal>
@@ -74,12 +74,10 @@
 
 <script setup>
 import axios, { queryDetail } from '@/api';
-import { dictStore } from '@/store';
 import { message } from 'ant-design-vue';
 import ActionList from './ActionList.jsx';
-import { required } from 'cyber-web-ui';
-
-const $dictStore = dictStore();
+import { required, useDict, checkCode } from 'cyber-web-ui';
+const { STATUS, IS_FRAME, MENU_VISIBLE } = useDict({ COMMON: ['STATUS'], SYSTEM: ['IS_FRAME', 'MENU_VISIBLE'] });
 const formRef = ref(); // 表单ref
 // 弹窗信息
 const modalState = reactive({
@@ -87,6 +85,7 @@ const modalState = reactive({
   isCreate: true,
   title: computed(() => modalState.isCreate ? '新建菜单' : '编辑菜单'),
   okText: computed(() => modalState.isCreate ? '新建' : '确定'),
+  productCode: undefined,
 });
 // 表单信息
 const formState = reactive({
@@ -110,16 +109,17 @@ const formState = reactive({
 // 表单校验规则
 const rules = {
   name: required(),
-  code: required(),
+  code: [required(), checkCode()],
   orderNum: required(),
   status: required(),
   path: required(),
 };
 const $emit = defineEmits(['ok']);
 const methods = {
-  async showModal(record) {
+  async showModal(record, productCode) {
     modalState.visible = true;
     modalState.isCreate = !record?.id;
+    modalState.productCode = productCode;
     let detail = await queryDetail('/system/menu', record);
     Object.keys(formState).forEach(key => {
       formState[key] = detail?.[key];
@@ -136,6 +136,8 @@ const methods = {
       formState.productName = record.productName;
     }
     formState.parentId = formState.parentId == '0' ? undefined : formState.parentId;
+    let productCodeReg = new RegExp(`^${productCode}`);
+    formState.apiPerms = (formState.apiPerms || []).map(item => item.replace(productCodeReg, ''));
     nextTick(unref(formRef).clearValidate);
   },
   onSubmit() {
@@ -151,7 +153,7 @@ const methods = {
             ...formState,
             parentId: formState.parentId || 0,
             productName: undefined,
-            apiPerms: (formState.apiPerms || []).filter(item => item),
+            apiPerms: (formState.apiPerms || []).filter(item => item).map(item => `${modalState.productCode}${item}`),
           },
         });
         formState.productId = undefined;

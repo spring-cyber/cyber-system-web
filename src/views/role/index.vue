@@ -1,51 +1,51 @@
 <template>
-  <c-page-label title="角色管理" icon="cyber-jiaose2" document-link="javascript:;">
-    <template #tips>维护角色相关信息。</template>
-  </c-page-label>
+  <div>
+    <c-page-label title="角色管理" icon="cyber-jiaose2" document-link="#角色管理-1">
+      <template #tips>维护角色相关信息。</template>
+    </c-page-label>
 
-  <div class="flex">
-    <c-product-tree v-model:value="queryState.productId" @change="methods.onChange"></c-product-tree>
+    <div class="flex">
+      <c-product-tree v-model:value="queryState.productId" @change="methods.onChange"></c-product-tree>
 
-    <div class="w-0 flex-1 ml-20px">
-      <c-table-wrapper
-        rowKey="id"
-        ref="tableRef"
-        v-model:loading="tableState.loading"
-        :columns="tableState.columns"
-        :overlayMenu="tableState.overlayMenu"
-        @search="methods.searchQuery"
-      >
-        <template #collapse>
-          <span class="text-14px weight-600">{{ tableState.parentNode?.name || '-' }} / {{ tableState.appNode?.name || '-' }}</span>
-        </template>
-        <template #right>
-          <a-button type="primary" :disabled="!queryState.productId" @click="methods.showModify()">新建</a-button>
-        </template>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key == 'name'">
-            <c-cell icon="cyber-jiaose" :title="record.name"></c-cell>
+      <div class="w-0 flex-1 ml-20px">
+        <c-table-wrapper
+          rowKey="id"
+          ref="tableRef"
+          v-model:loading="tableState.loading"
+          :columns="tableState.columns"
+          :overlayMenu="tableState.overlayMenu"
+          @search="methods.searchQuery"
+        >
+          <template #collapse>
+            <span class="text-14px weight-600">{{ tableState.parentNode?.name || '-' }} / {{ tableState.appNode?.name || '-' }}</span>
           </template>
-          <template v-if="column.key == 'type'">
-            <c-cell-dict :options="$dictStore.roleType" :value="record.type"></c-cell-dict>
+          <template #right>
+            <a-button type="primary" :disabled="!queryState.productId" @click="methods.showModify()">新建</a-button>
           </template>
-          <template v-if="column.key == 'status'">
-            <c-cell-dict :options="$dictStore.status" :value="record.status"></c-cell-dict>
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key == 'name'">
+              <c-cell icon="cyber-jiaose" :title="record.name"></c-cell>
+            </template>
+            <template v-if="column.key == 'type'">
+              <c-cell-dict :options="ROLE_TYPE" :value="record.type"></c-cell-dict>
+            </template>
+            <template v-if="column.key == 'status'">
+              <c-cell-dict :options="STATUS" :value="record.status"></c-cell-dict>
+            </template>
           </template>
-        </template>
-      </c-table-wrapper>
+        </c-table-wrapper>
+      </div>
     </div>
-  </div>
 
-  <Modify ref="modifyRef" @ok="methods.searchQuery()"></Modify>
+    <Modify ref="modifyRef" @ok="methods.searchQuery()"></Modify>
+  </div>
 </template>
 
 <script setup>
-import { dictStore } from '@/store';
-import { deleteConfrim } from '@/api';
-import { changeHistoryState, initHistoryState } from 'cyber-web-ui';
+import { changeHistoryState, initHistoryState, useDict, Modal } from 'cyber-web-ui';
 import Modify from './modules/Modify.vue';
 import { message } from 'ant-design-vue';
-const $dictStore = dictStore();
+const { STATUS, ROLE_TYPE } = useDict({ COMMON: ['STATUS', 'ROLE_TYPE'] });
 const tableRef = ref(); // 表格ref
 const modifyRef = ref(); // 弹窗ref
 // 表格请求参数
@@ -112,15 +112,16 @@ const methods = {
   },
   // 删除
   delete(record) {
-    deleteConfrim({
-      content: `是否确认删除“${record.name}（${record.code}）”的角色及其相关数据？`,
-      value: record.code,
-    }, {
-      url: '/system/role',
-      method: 'delete',
+    Modal.verify({
+      content: `是否确认删除“${record.name}”的角色及其相关数据？`,
+      value: record.name,
       params: {
-        id: record.id,
-      }
+        url: '/system/role',
+        method: 'delete',
+        params: {
+          id: record.id,
+        }
+      },
     }).then(() => {
       methods.searchQuery();
     });

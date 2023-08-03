@@ -1,6 +1,6 @@
+import { defineComponent, nextTick, reactive, ref, watchEffect, watch } from 'vue';
 import { Icon } from 'cyber-web-ui';
 import { Input as AInput } from 'ant-design-vue';
-import { defineComponent, reactive, watchEffect } from 'vue';
 import './ActionList.less';
 
 export default defineComponent({
@@ -15,31 +15,40 @@ export default defineComponent({
       type: String,
       default: '请输入'
     },
+    productCode: String,
   },
   setup(props, { attrs, slots, emit, expose }) {
+    const inputRef = ref();
     const actionState = reactive({
       actionKey: undefined,
       dataSource: [],
     });
 
-    
     function addHandler() {
       actionState.dataSource.push('');
       actionState.actionKey = actionState.dataSource.length - 1;
+      nextTick(() => unref(inputRef).focus());
     }
     function editHandler(index) {
       actionState.actionKey = index;
+      nextTick(() => unref(inputRef).focus());
     }
     function deleteHandler(index) {
       actionState.dataSource.splice(index, 1);
       actionState.actionKey = undefined;
     }
     function onKeydown(event) {
-      if(event.keyCode == 13) actionState.actionKey = undefined;
+      if(event.keyCode == 13) onBlur();
+    }
+    function onBlur() {
+      if(!actionState.dataSource[actionState.actionKey]) {
+        deleteHandler(actionState.actionKey);
+      }
+      actionState.actionKey = undefined;
     }
 
     watchEffect(() => actionState.dataSource = props.value || []);
-    watchEffect(() => emit('update:value', actionState.dataSource));
+    watch(() => actionState.dataSource, value => emit('update:value', value), { immediate: true, deep: true });
 
     return () => {
       const defaultSlot = () => {
@@ -49,13 +58,15 @@ export default defineComponent({
                   {
                     index == actionState.actionKey
                       ? <AInput
+                          ref={inputRef}
                           v-model:value={actionState.dataSource[index]}
                           placeholder={props.placeholder}
-                          onBlur={() => actionState.actionKey = undefined}
+                          onBlur={onBlur}
+                          addon-before={props.productCode}
                           onKeydown={onKeydown}
                         ></AInput>
                       : <>
-                          <span class="cyber-action-text">{ item }</span>
+                          <span class="cyber-action-text">{ props.productCode }{ item }</span>
                           <span class="cyber-action-edit" onClick={() => editHandler(index)}>编辑</span>
                           <span class="cyber-action-delete" onClick={() => deleteHandler(index)}>删除</span>
                         </>

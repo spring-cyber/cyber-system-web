@@ -54,40 +54,26 @@ const formRef = ref(); // 表单ref
 const modalState = reactive({
   visible: false,
   isCreate: true,
-  title: computed(() => modalState.isCreate ? '新建' : '编辑'),
+  title: computed(() => modalState.isCreate ? '新建公告' : '编辑公告'),
   okText: computed(() => modalState.isCreate ? '新建' : '确定'),
 });
 // 表单信息
 const formState = reactive({
   id: undefined,
-  productId: undefined,
   noticeTitle: undefined,
   noticeScope: undefined,
   noticeContent: undefined,
   status: undefined,
-  deleted: undefined,
-  creator: undefined,
   createTime: undefined,
-  updator: undefined,
-  updateTime: undefined,
   remark: undefined,
   version: undefined,
 });
 // 表单校验规则
 const rules = {
-  id: required(),
-  productId: required(),
   noticeTitle: required(),
+  createTime: required(),
   noticeScope: required(),
   noticeContent: required(),
-  status: required(),
-  deleted: required(),
-  creator: required(),
-  createTime: required(),
-  updator: required(),
-  updateTime: required(),
-  remark: required(),
-  version: required(),
 };
 const $emit = defineEmits(['ok']);
 const methods = {

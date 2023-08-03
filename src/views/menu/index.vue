@@ -1,50 +1,50 @@
 <template>
-  <c-page-label title="菜单管理" icon="cyber-caidan" document-link="javascript:;">
-    <template #tips>维护应用菜单相关信息。</template>
-  </c-page-label>
+  <div>
+    <c-page-label title="菜单管理" icon="cyber-caidan" document-link="#菜单管理">
+      <template #tips>维护应用菜单相关信息。</template>
+    </c-page-label>
 
-  <div class="flex">
-    <c-product-tree v-model:value="queryState.productId" @change="methods.onChange"></c-product-tree>
-    
-    <div class="w-0 flex-1 ml-20px">
-      <c-table-wrapper
-        rowKey="id"
-        ref="tableRef"
-        v-model:loading="tableState.loading"
-        :dataSource="tableState.dataSource"
-        :columns="tableState.columns"
-        :overlayMenu="tableState.overlayMenu"
-        @search="methods.searchQuery"
-      >
-        <template #collapse>
-          <span class="text-14px weight-600">{{ tableState.parentNode?.name || '-' }} / {{ tableState.appNode?.name || '-' }}</span>
-        </template>
-        <template #right>
-          <a-button type="primary" :disabled="!queryState.productId" @click="methods.showModify()">新建</a-button>
-        </template>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key == 'icon'">
-            <c-icon v-if="record.menu.icon" isSvg :icon="record.menu.icon" size="16"></c-icon>
+    <div class="flex">
+      <c-product-tree v-model:value="queryState.productId" @change="methods.onChange"></c-product-tree>
+      
+      <div class="w-0 flex-1 ml-20px">
+        <c-table-wrapper
+          rowKey="id"
+          ref="tableRef"
+          v-model:loading="tableState.loading"
+          :dataSource="tableState.dataSource"
+          :columns="tableState.columns"
+          :overlayMenu="tableState.overlayMenu"
+          @search="methods.searchQuery"
+        >
+          <template #collapse>
+            <span class="text-14px weight-600">{{ tableState.parentNode?.name || '-' }} / {{ tableState.appNode?.name || '-' }}</span>
           </template>
-          <template v-if="column.key == 'status'">
-            <c-cell-dict :options="$dictStore.status" :value="record.menu.status"></c-cell-dict>
+          <template #right>
+            <a-button type="primary" :disabled="!queryState.productId" @click="methods.showModify()">新建</a-button>
           </template>
-        </template>
-      </c-table-wrapper>
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key == 'icon'">
+              <c-icon v-if="record.menu.icon" isSvg :icon="record.menu.icon" size="16"></c-icon>
+            </template>
+            <template v-if="column.key == 'status'">
+              <c-cell-dict :options="STATUS" :value="record.menu.status"></c-cell-dict>
+            </template>
+          </template>
+        </c-table-wrapper>
+      </div>
     </div>
-  </div>
 
-  <Modify ref="modifyRef" @ok="methods.searchQuery()"></Modify>
+    <Modify ref="modifyRef" @ok="methods.searchQuery()"></Modify>
+  </div>
 </template>
 
 <script setup>
 import axios from '@/api';
-import { dictStore } from '@/store';
-import { deleteConfrim } from '@/api';
-import { changeHistoryState, initHistoryState } from 'cyber-web-ui';
+import { changeHistoryState, initHistoryState, useDict, Modal } from 'cyber-web-ui';
 import Modify from './modules/Modify.vue';
 import { message } from 'ant-design-vue';
-const $dictStore = dictStore();
+const { STATUS } = useDict({ COMMON: ['STATUS'] });
 const tableRef = ref(); // 表格ref
 const modifyRef = ref(); // 弹窗ref
 // 表格请求参数
@@ -114,19 +114,20 @@ const methods = {
       productId: tableState.appNode.id,
       productName: tableState.appNode.name,
       ...(record?.menu || {}),
-    });
+    }, `/${tableState.appNode.code}/`);
   },
   // 删除
   delete(record) {
-    deleteConfrim({
-      content: `是否确认删除“${record.menu.name}（${record.menu.code}）”的菜单及其相关数据？`,
-      value: record.menu.code,
-    }, {
-      url: '/system/menu',
-      method: 'delete',
+    Modal.verify({
+      content: `是否确认删除“${record.menu.name}”的菜单及其相关数据？`,
+      value: record.menu.name,
       params: {
-        id: record.id,
-      }
+        url: '/system/menu',
+        method: 'delete',
+        params: {
+          id: record.id,
+        }
+      },
     }).then(() => {
       methods.searchQuery();
     });

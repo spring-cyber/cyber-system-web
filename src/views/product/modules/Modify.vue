@@ -19,10 +19,10 @@
       </a-form-item>
       <div class="grid grid-cols-2 gap-x-20px">
         <a-form-item label="应用编码" name="code">
-          <a-input v-model:value="formState.code" placeholder="请输入应用编码..."></a-input>
+          <a-input v-model:value="formState.code" :disabled="!modalState.isCreate" placeholder="请输入应用编码..."></a-input>
         </a-form-item>
         <a-form-item label="应用类型" name="type">
-          <c-select v-model:value="formState.type" :options="$dictStore.productType" placeholder="请选择应用类型"></c-select>
+          <c-select v-model:value="formState.type" :options="PRODUCT_TYPE" placeholder="请选择应用类型"></c-select>
         </a-form-item>
         <a-form-item label="应用图标" name="icon">
           <c-icon-select v-model:value="formState.icon" placeholder="请点击选择应用图标"></c-icon-select>
@@ -31,7 +31,7 @@
           <a-input v-model:value="formState.portalAdd" placeholder="http://www.example.com"></a-input>
         </a-form-item>
         <a-form-item label="应用状态" name="status">
-          <a-radio-group v-model:value="formState.status" :options="$dictStore.status"></a-radio-group>
+          <a-radio-group v-model:value="formState.status" :options="STATUS"></a-radio-group>
         </a-form-item>
         <a-form-item label="显示顺序" name="orderNum">
           <a-input-number
@@ -43,16 +43,16 @@
           ></a-input-number>
         </a-form-item>
         <a-form-item label="负责人" name="leader">
-          <a-input v-model:value="formState.leader" placeholder="请输入负责人姓名..." show-count :maxlength="16"></a-input>
+          <a-input v-model:value="formState.leader" placeholder="请输入负责人姓名..." show-count :maxlength="32"></a-input>
         </a-form-item>
         <a-form-item label="联系电话" name="phone">
-          <a-input v-model:value="formState.phone" placeholder="请输入负责人电话..." show-count :maxlength="16"></a-input>
+          <a-input v-model:value="formState.phone" placeholder="请输入负责人电话..." show-count :maxlength="32"></a-input>
         </a-form-item>
         <a-form-item label="联系邮箱" name="email">
-          <a-input v-model:value="formState.email" placeholder="请输入负责人联系邮箱..." show-count :maxlength="16"></a-input>
+          <a-input v-model:value="formState.email" placeholder="请输入负责人联系邮箱..." show-count :maxlength="64"></a-input>
         </a-form-item>
       </div>
-      <a-form-item label="企业描述" name="description">
+      <a-form-item label="描述" name="description">
         <a-textarea v-model:value="formState.description" placeholder="请输入描述信息..." show-count :maxlength="120"></a-textarea>
       </a-form-item>
     </a-form>
@@ -61,10 +61,9 @@
 
 <script setup>
 import axios, { queryDetail } from '@/api';
-import { dictStore } from '@/store';
 import { message } from 'ant-design-vue';
-import { required } from 'cyber-web-ui';
-const $dictStore = dictStore();
+import { required, useDict, checkCode } from 'cyber-web-ui';
+const { STATUS, PRODUCT_TYPE } = useDict({ COMMON: ['STATUS', 'PRODUCT_TYPE'] });
 const formRef = ref(); // 表单ref
 // 弹窗信息
 const modalState = reactive({
@@ -92,7 +91,7 @@ const formState = reactive({
 // 表单校验规则
 const rules = {
   name: required(),
-  code: required(),
+  code: [required(), checkCode()],
   icon: required(),
   portalAdd: required(),
   type: required(),

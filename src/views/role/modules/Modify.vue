@@ -26,7 +26,7 @@
           <a-input v-model:value="formState.code" placeholder="请输入角色编码..."></a-input>
         </a-form-item>
         <a-form-item label="角色状态" name="status">
-          <a-radio-group v-model:value="formState.status" :options="$dictStore.status"></a-radio-group>
+          <a-radio-group v-model:value="formState.status" :options="STATUS"></a-radio-group>
         </a-form-item>
         <a-form-item label="显示顺序" name="orderNum">
           <a-input-number
@@ -51,10 +51,9 @@
 
 <script setup>
 import axios, { queryDetail } from '@/api';
-import { dictStore } from '@/store';
 import { message } from 'ant-design-vue';
-import { required } from 'cyber-web-ui';
-const $dictStore = dictStore();
+import { required, useDict, checkCode } from 'cyber-web-ui';
+const { STATUS } = useDict({ COMMON: ['STATUS'] });
 const formRef = ref(); // 表单ref
 // 弹窗信息
 const modalState = reactive({
@@ -80,7 +79,7 @@ const formState = reactive({
 // 表单校验规则
 const rules = {
   name: required(),
-  code: required(),
+  code: [required(), checkCode()],
   orderNum: required(),
   status: required(),
 };

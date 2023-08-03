@@ -1,6 +1,5 @@
 <template>
-  <c-layout :logo="Logo"></c-layout>
-  <c-login-mask :logo="Logo2"></c-login-mask>
+  <c-layout :logo="Logo" :login-logo="Logo2"></c-layout>
 </template>
 
 <script setup>

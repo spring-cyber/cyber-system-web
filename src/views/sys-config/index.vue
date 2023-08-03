@@ -1,51 +1,50 @@
 <template>
-  <c-page-label title="系统配置项" icon="cyber-jiaose2" document-link="javascript:;">
-    <template #tips>维护配置项相关信息。</template>
-  </c-page-label>
+  <div>
+    <c-page-label title="系统配置项" icon="cyber-jiaose2" document-link="#系统配置项">
+      <template #tips>维护配置项相关信息。</template>
+    </c-page-label>
 
+    <div class="flex">
+      <ConfigApplicationTree v-model:value="queryState.productId" @change="methods.onChange"></ConfigApplicationTree>
 
-  <div class="flex">
-    <ConfigApplicationTree v-model:value="queryState.productId" @change="methods.onChange"></ConfigApplicationTree>
-
-    <div class="w-0 flex-1 ml-20px">
-      <c-table-wrapper
-        rowKey="id"
-        ref="tableRef"
-        v-model:loading="tableState.loading"
-        :columns="tableState.columns"
-        :overlayMenu="tableState.overlayMenu"
-        @search="methods.searchQuery"
-      >
-        <template #collapse>
-          <span class="text-14px weight-600">
-            {{ tableState.tableTitle }}
-          </span>
-        </template>
-        <template #right>
-          <a-button type="primary" ghost @click="methods.showModify()">添加参数</a-button>
-        </template>
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key == 'configName'">
-            <c-cell icon="cyber-peizhixiang1" :title="record.configName"></c-cell>
+      <div class="w-0 flex-1 ml-20px">
+        <c-table-wrapper
+          rowKey="id"
+          ref="tableRef"
+          v-model:loading="tableState.loading"
+          :columns="tableState.columns"
+          :overlayMenu="tableState.overlayMenu"
+          @search="methods.searchQuery"
+        >
+          <template #collapse>
+            <span class="text-14px weight-600">
+              {{ tableState.tableTitle }}
+            </span>
           </template>
-          <template v-if="column.key == 'configType'">
-            <c-cell-dict :options="$dictStore.configType" :value="record.configType"></c-cell-dict>
+          <template #right>
+            <a-button type="primary" ghost @click="methods.showModify()">添加参数</a-button>
           </template>
-        </template>
-      </c-table-wrapper>
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key == 'configName'">
+              <c-cell icon="cyber-peizhixiang1" :title="record.configName"></c-cell>
+            </template>
+            <template v-if="column.key == 'configType'">
+              <c-cell-dict :options="CONFIG_TYPE" :value="record.configType"></c-cell-dict>
+            </template>
+          </template>
+        </c-table-wrapper>
+      </div>
     </div>
-  </div>
 
-  <Modify ref="modifyRef" @ok="methods.searchQuery()"></Modify>
+    <Modify ref="modifyRef" @ok="methods.searchQuery()"></Modify>
+  </div>
 </template>
 
 <script setup>
-import { dictStore } from '@/store';
-import { deleteConfrim } from '@/api';
-import { changeHistoryState, initHistoryState } from 'cyber-web-ui';
+import { changeHistoryState, initHistoryState, useDict, Modal } from 'cyber-web-ui';
 import Modify from './modules/Modify.vue';
 import ConfigApplicationTree from './modules/ConfigApplicationTree.vue';
-const $dictStore = dictStore();
+const { CONFIG_TYPE } = useDict({ SYSTEM: ['CONFIG_TYPE'] });
 const tableRef = ref(); // 表格ref
 const modifyRef = ref(); // 弹窗ref
 // 表格请求参数
@@ -114,15 +113,16 @@ const methods = {
   },
   // 删除
   delete(record) {
-    deleteConfrim({
-      content: `是否确认删除“${record.configName}（${record.configCode}）”的配置项及其相关数据？`,
-      value: record.configCode,
-    }, {
-      url: '/system/sysconfig',
-      method: 'delete',
+    Modal.verify({
+      content: `是否确认删除“${record.configName}”的配置项及其相关数据？`,
+      value: record.configName,
       params: {
-        id: record.id,
-      }
+        url: '/system/sysconfig',
+        method: 'delete',
+        params: {
+          id: record.id,
+        }
+      },
     }).then(() => {
       methods.searchQuery();
     });

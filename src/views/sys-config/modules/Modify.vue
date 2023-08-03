@@ -41,7 +41,7 @@
 <script setup>
 import axios, { queryDetail } from '@/api';
 import { message } from 'ant-design-vue';
-import { required } from 'cyber-web-ui';
+import { required, checkCode } from 'cyber-web-ui';
 const formRef = ref(); // 表单ref
 // 弹窗信息
 const modalState = reactive({
@@ -66,7 +66,7 @@ const formState = reactive({
 // 表单校验规则
 const rules = {
   configName: required(),
-  configCode: required(),
+  configCode: [required(), checkCode()],
   configKey: required(),
   configValue: required(),
 };
